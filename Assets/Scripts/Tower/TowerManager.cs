@@ -163,8 +163,18 @@ public class TowerManager : MonoBehaviour
 
     void HandleBlockDropped(object sender, BlockEventArgs e) // game over
     {
-        if (!e.transform.parent.name.Contains("Row #1"))
+        /*if (!e.transform.parent.name.Contains("Row #1"))          // OLD VERSION !
+        {
+            State = TowerState.FALLING;                             // Notes: Each row of the tower contains is named Row #1, Row #2, Row #3. Checking if the parent of the dropped block contains
+                                                                    // the string "Row #1" is an error because Row #10, Row #11, Row #12, etc contain the substring "Row #1". So if blocks from those rows
+                                                                    // are dropped, the tower state will be set to FALLING.
+            print("tower state set to Falling");
+        }*/
+
+        if (!e.transform.parent.name.Equals("Row #1 (0)") && !e.transform.parent.name.Equals("Row #1 (90)"))
+        {
             State = TowerState.FALLING;
+        }
     }
 
     void HandleBlockFading(object sender, BlockEventArgs e)
