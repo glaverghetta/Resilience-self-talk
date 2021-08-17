@@ -6,6 +6,11 @@ using System;
 
 public class TowerManager : MonoBehaviour
 {
+    private bool promptAnswered = true;
+    private bool promptNotAskedYet = true;
+    public delegate void waitTimerFinishedDelegate();
+    public event waitTimerFinishedDelegate waitTimerFinishedEvent;  // Event called when the waitTimer finishes after player removes a block
+
     public int rowsNumber = 18;
     public GameObject blockModel, setupBlockModel;
     public float stabilizingTime = 1.5f;
@@ -56,6 +61,11 @@ public class TowerManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        if(FindObjectOfType<Prompts>() != null)
+        {
+            FindObjectOfType<Prompts>().promptAnsweredEvent += OnPromptAnswered;
+        }
+
         mainCamera = Camera.main.GetComponent<OrbitCamera>();
 
         towerCenter = new GameObject("Center");
@@ -102,7 +112,16 @@ public class TowerManager : MonoBehaviour
             case TowerState.WAITING:
                 if (waitTimer < waitDelay)
                 {
-                    waitTimer += Time.deltaTime;
+                    waitTimer += Time.deltaTime;    // Wait for waitTimer to finish before asking the question
+                }
+                else if(!promptAnswered) // Wait for user to answer question before continuing
+                {
+                    if(waitTimerFinishedEvent != null && promptNotAskedYet)
+                    {
+                        print("Asked prompt.");
+                        waitTimerFinishedEvent();
+                        promptNotAskedYet = false;
+                    }
                 }
                 else 
                 {
@@ -139,6 +158,12 @@ public class TowerManager : MonoBehaviour
     #endregion
 
     #region Event handlers
+
+    void OnPromptAnswered()
+    {
+        promptAnswered = true;
+    }
+
     void HandleTopBlockPlacerDestroyed(object sender, EventArgs e)
     {
         var row = AddRow();
@@ -180,6 +205,8 @@ public class TowerManager : MonoBehaviour
     void HandleBlockFading(object sender, BlockEventArgs e)
     {
         ToggleBlocksLock(true);
+        promptAnswered = false;
+        promptNotAskedYet = true;
         e.Manager.enabled = true;
     }
     
